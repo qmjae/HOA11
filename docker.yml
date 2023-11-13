@@ -7,6 +7,7 @@
      tags: always
      dnf:
        update_cache: yes
+       use_backend: dnf4
      changed_when: false
      when: ansible_distribution == "CentOS"
 
@@ -22,7 +23,7 @@
    roles:
      - Ubuntu
 
- - hosts: CentOS
-   become: true
-   roles:
-     - CentOS
+ #- hosts: CentOS
+ #  become: true
+  # roles:
+   #  - CentOS

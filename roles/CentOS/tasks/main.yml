@@ -1,40 +1,77 @@
----
- - name: Install Additional / Update Current packages needed for Docker
-   dnf:
-     name:
-     - gnupg2
-     state: latest
+- name: Update package cache
+  dnf:
+    update_cache: yes
+    use_backend: dnf4
 
- - name: Install the Docker in CentOS
-   dnf:
-     name: docker
-     state: latest
+- name: Install Docker packages
+  dnf:
+    name:
+      - docker-ce
+      - docker-ce-cli
+      - containerd.io
+    use_backend: dnf4
+    state: latest
 
- - name: Start the Docker Service in CentOS
-   service:
-     name: docker
-     state: started
-     enabled: true
+- name: Start the Docker Service in CentOS
+  service:
+    name: docker
+    state: started
+    enabled: true
 
- - name: Add current user to the Docker group
-   user:
-     name: "{{ ansible_user_id }}"
-     groups: docker
-     append: yes
-   when: ansible_user_id != "root"
+- name: Ensure group docker exists
+  group:
+    name: docker
+    state: present
 
- - name: Create Dockerfile for Apache2 and MariaDB
-   hosts: localhost
-   tasks:
-     - name: Create Dockerfile
-       template:
-         src: Dockerfile.j2
-         dest: /home/mj/HOA11/roles/CentOS/tasks
-       notify:
-         - Build Docker Image
+- name: Adding the current user to the docker group
+  user:
+    name: "{{ ansible_user }}"
+    groups: docker
+    append: yes
 
- - name: Build Docker Image
-   docker_image:
-     path: /home/mj/HOA11/roles/CentOS/tasks
-     name: Docker 
-     state: present
+- name: Creating a directory for Dockerfile
+  file:
+    path: /home/mj/docker_config
+    state: directory
+
+- name: Copying the Dockerfile
+  copy:
+    src: /home/mj/HOA11/files/Dockerfile_CentOS
+    dest: /home/mj/docker_config
+    owner: mj
+    group: mj
+
+- name: Creating volume
+  file:
+    path: /home/mj/pages
+    state: directory
+
+- name: Install required Python library (requests)
+  dnf:
+    name: python3-requests
+    use_backend: dnf4
+    state: present
+
+- name: Build Docker image
+  command: "docker build -t lamp-userver:1.0 /home/mj/docker_config"
+
+- name: Deploying container
+  community.docker.docker_container:
+    name: lamp-userver
+    image: lamp-userver:1.0
+    state: started
+    exposed_ports:
+      - "80"
+    ports:
+      - "8080:80"
+    volumes:
+      - /home/mj/pages:/var/www/html
+
+- block:
+  - name: Verify if lamp-userver container is running
+    shell: docker ps
+    register: container_status
+
+  - debug:
+      msg: "{{ container_status }}"
+

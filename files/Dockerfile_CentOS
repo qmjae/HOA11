@@ -1,0 +1,24 @@
+FROM centos:latest
+MAINTAINER mj <qmjaejercito@tip.edu.ph>
+
+ARG DEBIAN_FRONTEND=noninteractive
+
+# Disable the 'appstream' repository
+RUN sed -i '/appstream/s/enabled=1/enabled=0/' /etc/yum.repos.d/CentOS-Linux-AppStream.repo
+
+# Update and install required packages, excluding 'appstream'
+RUN dnf -y update \
+    && dnf -y install httpd php php-mysql mariadb-server mariadb python3-requests --disablerepo=appstream
+
+# Start Apache and enable it to start on boot
+RUN systemctl enable httpd
+
+# Start MariaDB and enable it to start on boot
+RUN systemctl enable mariadb
+
+# Expose port 80
+EXPOSE 80
+
+# CMD to start Apache in the foreground
+CMD ["/usr/sbin/httpd", "-D", "FOREGROUND"]
+

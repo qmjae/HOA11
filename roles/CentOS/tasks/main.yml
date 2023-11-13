@@ -1,0 +1,40 @@
+---
+ - name: Install Additional / Update Current packages needed for Docker
+   dnf:
+     name:
+     - gnupg2
+     state: latest
+
+ - name: Install the Docker in CentOS
+   dnf:
+     name: docker
+     state: latest
+
+ - name: Start the Docker Service in CentOS
+   service:
+     name: docker
+     state: started
+     enabled: true
+
+ - name: Add current user to the Docker group
+   user:
+     name: "{{ ansible_user_id }}"
+     groups: docker
+     append: yes
+   when: ansible_user_id != "root"
+
+ - name: Create Dockerfile for Apache2 and MariaDB
+   hosts: localhost
+   tasks:
+     - name: Create Dockerfile
+       template:
+         src: Dockerfile.j2
+         dest: /home/mj/HOA11/roles/CentOS/tasks
+       notify:
+         - Build Docker Image
+
+ - name: Build Docker Image
+   docker_image:
+     path: /home/mj/HOA11/roles/CentOS/tasks
+     name: Docker 
+     state: present

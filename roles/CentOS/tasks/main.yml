@@ -1,15 +1,12 @@
+---
 - name: Update package cache
   dnf:
     update_cache: yes
-    use_backend: dnf4
 
-- name: Install Docker packages
+- name: Install Docker 
   dnf:
     name:
-      - docker-ce
-      - docker-ce-cli
-      - containerd.io
-    use_backend: dnf4
+      - docker
     state: latest
 
 - name: Start the Docker Service in CentOS
@@ -37,7 +34,7 @@
 - name: Copying the Dockerfile
   copy:
     src: /home/mj/HOA11/files/Dockerfile_CentOS
-    dest: /home/mj/docker_config
+    dest: /home/mj/docker_config/Dockerfile_CentOS
     owner: mj
     group: mj
 
@@ -45,12 +42,6 @@
   file:
     path: /home/mj/pages
     state: directory
-
-- name: Install required Python library (requests)
-  dnf:
-    name: python3-requests
-    use_backend: dnf4
-    state: present
 
 - name: Build Docker image
   command: "docker build -t lamp-userver:1.0 /home/mj/docker_config"

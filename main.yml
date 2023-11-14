@@ -1,0 +1,63 @@
+---
+- hosts: CentOS
+  become: yes
+  vars:
+    docker_version: "19.03.13"
+    db_server_image_name: "my-db-server"
+
+  tasks:
+  # Install Docker
+  - name: Install Docker
+    dnf:
+      name: docker
+      state: present
+
+  # Enable Docker Socket
+  - name: Enable Docker Socket
+    service:
+      name: docker
+      enabled: yes
+      state: started
+
+  - name: Ensure group docker exists
+    group:
+      name: docker
+      state: present
+
+  - name: Adding the current user to the docker group
+    user:
+      name: "{{ ansible_user }}"
+      groups: docker
+      append: yes
+  
+  - name: Create a Dockerfile to Install Web Server
+    copy:
+      content: |
+        FROM nginx:latest
+        COPY html /usr/share/nginx/html
+        EXPOSE 80
+
+      dest: /root/Dockerfile
+      owner: root
+      group: root
+      mode: 0644
+
+  # Create a Dockerfile to Install DB Server
+  - name: Create a Dockerfile to Install DB Server
+    copy:
+      content: |
+        FROM mariadb:latest
+        EXPOSE 3306
+
+      dest: /root/Dockerfile
+      owner: root
+      group: root
+      mode: 0644
+
+  # Install and Build the Dockerfile Using Ansible
+  - name: Install and Build the Dockerfile Using Ansible
+    docker_image:
+      name: "{{ db_server_image_name }}"
+      path: /root
+      build: [True]
+

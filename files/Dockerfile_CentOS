@@ -1,24 +1,20 @@
 FROM centos:latest
-MAINTAINER mj <qmjaejercito@tip.edu.ph>
 
-ARG DEBIAN_FRONTEND=noninteractive
+RUN cd /etc/yum.repos.d/
+RUN sed -i 's/mirrorlist/#mirrorlist/g' /etc/yum.repos.d/CentOS-*
+RUN sed -i 's|#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' /etc/yum.repos.d/CentOS-*
 
-# Disable the 'appstream' repository
-RUN sed -i '/appstream/s/enabled=1/enabled=0/' /etc/yum.repos.d/CentOS-Linux-AppStream.repo
+# Update the package cache
+RUN dnf update -y
 
-# Update and install required packages, excluding 'appstream'
-RUN dnf -y update \
-    && dnf -y install httpd php php-mysql mariadb-server mariadb python3-requests --disablerepo=appstream
+# Install HTTPD and MariaDB
+RUN dnf install -y httpd mariadb-server
 
-# Start Apache and enable it to start on boot
-RUN systemctl enable httpd
+# Start HTTPD and MariaDB
+RUN systemctl enable --now httpd mariadb
 
-# Start MariaDB and enable it to start on boot
-RUN systemctl enable mariadb
-
-# Expose port 80
+# Expose port 80 for HTTPD
 EXPOSE 80
 
-# CMD to start Apache in the foreground
-CMD ["/usr/sbin/httpd", "-D", "FOREGROUND"]
-
+# Set the working directory
+WORKDIR /var/www/html

@@ -49,7 +49,7 @@
 
 - name: Copying the Dockerfile
   copy:
-    src: /home/mj/HOA11/files/Dockerfile_Ubuntu
+    src: /home/mj/HOA11/Ubuntu_Docker/Dockerfile
     dest: /home/mj/docker_config
     owner: mj
     group: mj

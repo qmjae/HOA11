@@ -8,13 +8,13 @@ RUN sed -i 's|#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|
 RUN dnf update -y
 
 # Install HTTPD and MariaDB
-RUN dnf install -y httpd mariadb-server
-
-# Start HTTPD and MariaDB
-RUN systemctl enable --now httpd mariadb
+RUN dnf install -y httpd mariadb-server initscripts
 
 # Expose port 80 for HTTPD
 EXPOSE 80
 
 # Set the working directory
 WORKDIR /var/www/html
+
+CMD ["/bin/sh", "-c", "/usr/sbin/httpd -DFOREGROUND && /usr/libexec/mysqld --user=mysql --datadir=/var/lib/mysql"]
+

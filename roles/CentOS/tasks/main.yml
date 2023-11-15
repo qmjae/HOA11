@@ -2,11 +2,13 @@
 - name: Update package cache
   dnf:
     update_cache: yes
+    use_backend: dnf4
 
 - name: Install Docker 
   dnf:
     name:
       - docker
+    use_backend: dnf4
     state: latest
 
 - name: Start the Docker Service in CentOS
@@ -33,8 +35,8 @@
 
 - name: Copying the Dockerfile
   copy:
-    src: /home/mj/HOA11/files/Dockerfile_CentOS
-    dest: /home/mj/docker_config/Dockerfile_CentOS
+    src: /home/mj/HOA11/CentOS_Docker/Dockerfile
+    dest: /home/mj/docker_config
     owner: mj
     group: mj
 
